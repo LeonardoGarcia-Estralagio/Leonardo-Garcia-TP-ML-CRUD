@@ -1,8 +1,6 @@
-const fs = require('fs');
-const path = require('path');
+const { readJSON, writeJSON } = require("../data");
 
-const productsFilePath = path.join(__dirname, '../data/productsDataBase.json');
-const products = JSON.parse(fs.readFileSync(productsFilePath, 'utf-8'));
+const products = readJSON('productsDataBase.json')
 
 const toThousand = n => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
@@ -15,7 +13,13 @@ const controller = {
 		})
 	},
 	search: (req, res) => {
-		// Do the magic
+		const keywords = req.query.keywords;
+		const results = products.filter(product => product.name.toLowerCase().includes(keywords.toLowerCase()))
+		return res.render('results',{
+			results,
+			keywords,
+			toThousand
+		})
 	},
 };
 
