@@ -1,4 +1,5 @@
 const { readJSON, writeJSON } = require("../data");
+const upload = require("../middleware/upload");
 
 const products = readJSON("productsDataBase.json");
 const toThousand = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -39,7 +40,7 @@ const controller = {
       discount: +discount,
       category,
       description: description.trim(),
-      image: null,
+      image: req.file ? req.file.filename : product.image,
     };
 
     products.push(product);
@@ -59,7 +60,7 @@ const controller = {
   },
   // Update - Method to update
   update: (req, res) => {
-    const { name, price, description, discount, category } = req.body;
+    const { name, price, description, discount} = req.body;
 
     const productsModify = products.map((product) => {
       if (product.id === +req.params.id) {
@@ -68,7 +69,7 @@ const controller = {
         product.discount = +discount;
         product.category;
         product.description = description.trim();
-        product.image = null;
+        product.image = req.file ? req.file.filename : product.image;
       }
       return product;
     });
