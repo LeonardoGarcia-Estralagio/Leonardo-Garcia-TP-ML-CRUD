@@ -1,3 +1,5 @@
+const db =require('../database/models')
+
 const { readJSON, writeJSON } = require("../data");
 const upload = require("../middleware/upload");
 
@@ -7,22 +9,28 @@ const toThousand = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 const controller = {
   // Root - Show all products
   index: (req, res) => {
-    const products = readJSON("productsDataBase.json");
 
-    return res.render("products", {
+    db.Product.findAll()
+      .then(product => {
+        return res.render("products", {
       products,
       toThousand,
     });
+      })
+      .catch(error => console.log(error));
   },
 
   // Detail - Detail from one product
   detail: (req, res) => {
-    const id = req.params.id;
-    const product = products.find((product) => product.id === +id);
-    return res.render("detail", {
-      ...product,
+
+    db.Product.findByPk(req.params.id)
+      .then(product => {
+        return res.render("detail", {
+      ...product.dataValues,
       toThousand,
     });
+      })
+      .catch(error => console.log(error))
   },
 
   // Create - Form to create

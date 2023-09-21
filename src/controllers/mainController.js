@@ -1,25 +1,53 @@
-const { readJSON, writeJSON } = require("../data");
+const db =require('../database/models')
+const { Op } = require("sequelize");
 
+const { readJSON, writeJSON } = require("../data");
 const products = readJSON('productsDataBase.json')
 
 const toThousand = n => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
 const controller = {
 	index: (req, res) => {
-		return res.render('index', {
-			visited : products.filter(product => product.category === 'visited'),
-			sale : products.filter(product => product.category === 'in-sale'),
-			toThousand
+
+		const visited = db.Product.findAll({
+			where : {
+				categoryId : 1
+			}
 		})
+
+		const sale = db.Product.findAll({
+			where : {
+				categoryId : 2
+			}
+		})
+
+		Promise.all([visited,sale])
+			.then(([visited,sale]) => {
+				return res.render('index', {
+					visited,
+					sale,
+					toThousand
+				})
+			})
+			.catch(error => console.log(error))
 	},
 	search: (req, res) => {
 		const keywords = req.query.keywords;
-		const results = products.filter(product => product.name.toLowerCase().includes(keywords.toLowerCase()))
-		return res.render('results',{
-			results,
-			keywords,
-			toThousand
+		db.Product.findAll({
+			where: {
+				name: {
+					[Op.like]: '%' + keywords + '%'
+				}
+			}
 		})
+		.then(results => {
+			return res.render('results', {
+				results,
+				keywords,
+				toThousand
+			})
+		})
+		.catch(error => console.log(error));
 	},
 };
 
